@@ -76,6 +76,18 @@ def get_args():
     parser.add_argument("--target", type=str, default="OT", help="S或MS任务中的目标特征")
     parser.add_argument("--freq", type=str, default="h", help="时间特征编码频率")
     parser.add_argument("--checkpoints", type=str, default="./checkpoints/", help="模型检查点保存位置")
+    parser.add_argument(
+        "--test_noise_factor",
+        type=float,
+        default=0.0,
+        help="仅在 test split 的输入窗口上添加高斯噪声，用于复现鲁棒性实验",
+    )
+    parser.add_argument(
+        "--test_noise_seed",
+        type=int,
+        default=2025,
+        help="test split 高斯噪声的随机种子",
+    )
 
     # 预测任务配置
     parser.add_argument("--seq_len", type=int, default=512, help="输入序列长度")
@@ -1222,6 +1234,11 @@ def main():
         vali_data, vali_loader = data_provider(args, "val", multivariate=True)
         test_data, test_loader = data_provider(args, "test", multivariate=True)
         print(f"Train samples: {len(train_data)}, Val samples: {len(vali_data)}, Test samples: {len(test_data)}")
+        if float(getattr(args, "test_noise_factor", 0.0)) > 0:
+            print(
+                f"Test-noise mode enabled: factor={float(args.test_noise_factor):.4f}, "
+                f"seed={int(getattr(args, 'test_noise_seed', 2025))}"
+            )
         
         # 创建模型配置
         from types import SimpleNamespace
